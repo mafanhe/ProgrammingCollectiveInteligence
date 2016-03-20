@@ -1,7 +1,7 @@
 # -*-coding:utf-8 -*-
 import re
 import math
-
+from pysqlite2 import  dbapi2 as sqlite
 
 def sampletrain(cl):
     cl.train('Nobody owns the water.', 'good')
