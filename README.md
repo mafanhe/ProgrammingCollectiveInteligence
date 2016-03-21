@@ -1,4 +1,4 @@
-The notebook of <Programming Collective Intelligence>
+The notebook of "Programming Collective Intelligence"
 =====================================================
 I'm sorry the name of this repository is wrong lol...
 -----------------------------------------------------
