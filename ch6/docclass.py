@@ -30,20 +30,32 @@ class Classifier:
 
     # 增加对特征/分类组合的计数值
     def incf(self, f, cat):
-        self.fc.setdefault(f, {})
-        self.fc[f].setdefault(cat, 0)
-        self.fc[f][cat] += 1
+        # self.fc.setdefault(f, {})
+        # self.fc[f].setdefault(cat, 0)
+        # self.fc[f][cat] += 1
+        count = self.fcount(f, cat)
+        if count == 0:
+            self.con.execute("insert into fc values ('%s', '%s', 1)" % (f, cat))
+        else:
+            self.con.execute("update fc set count=%d where feature='%s' and category='%s'" % (count+1, f, cat))
 
     # 增加对某一分类的计数值
     def incc(self, cat):
-        self.cc.setdefault(cat, 0)
-        self.cc[cat] += 1
+        # self.cc.setdefault(cat, 0)
+        # self.cc[cat] += 1
+        pass
 
     # 某一特征出现于某一分类中的计数值
     def fcount(self, f, cat):
-        if f in self.fc and cat in self.fc[f]:
-            return float(self.fc[f][cat])
-        return 0.0
+        # if f in self.fc and cat in self.fc[f]:
+        #     return float(self.fc[f][cat])
+        # return 0.0
+        res = self.con.execute('select count from fc where feature="%s" and category="%s"'
+                               % (f, cat)).fetchone()
+        if res is None:
+            return 0
+        else:
+            return float(res[0])
 
     # 属于某一分类的内容项数量
     def catcount(self, cat):
@@ -86,6 +98,12 @@ class Classifier:
         # 计算加权平均
         bp = ((weight*ap)+(totals*basicprob))/(weight+totals)
         return bp
+
+    def setdb(self, dbfile):
+        self.con = sqlite.connect(dbfile)
+        self.con.execute('create table if not EXISTS fc(feature, category, count)')
+        self.con.execute('create table if not EXISTS cc(category, count)')
+
 
 
 class NaiveBayes(Classifier):
