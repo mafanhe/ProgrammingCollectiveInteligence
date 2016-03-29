@@ -43,6 +43,12 @@ class Classifier:
     def incc(self, cat):
         # self.cc.setdefault(cat, 0)
         # self.cc[cat] += 1
+        count = self.catcount(cat)
+        if count == 0:
+            self.con.execute("insert into cc values ('%s', 1)" % (cat))
+        else:
+            self.con.execute("update cc set count=%d where category='%s'" % (count+1, cat))
+
         pass
 
     # 某一特征出现于某一分类中的计数值
@@ -59,17 +65,28 @@ class Classifier:
 
     # 属于某一分类的内容项数量
     def catcount(self, cat):
-        if cat in self.cc:
-            return float(self.cc[cat])
-        return 0
+        # if cat in self.cc:
+        #     return float(self.cc[cat])
+        # return 0
+        res = self.con.execute('select count from cc where category="%s"' % (cat)).fetchone()
+        if res is None: return 0
+        else:
+            return float(res[0])
 
     # 所有内容项的数量
     def totalcount(self):
-        return sum(self.cc.values())
+        # return sum(self.cc.values())
+        res = self.con.execute('select sum(count) from cc').fetchone();
+        if res is None:
+            return 0
+        else:
+            return res[0]
 
     # 所有分类的列表
     def categories(self):
-        return self.cc.keys()
+        # return self.cc.keys()
+        cur = self.con.execute('select category from cc');
+        return [d[0] for d in cur]
 
     def train(self, item, cat):
         features = self.getfeatures(item)
@@ -79,6 +96,7 @@ class Classifier:
 
         # 增加针对该分类的计数值
         self.incc(cat)
+        self.con.commit()
 
     # 计算概率
     def fprob(self, f, cat):
